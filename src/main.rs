@@ -1,5 +1,6 @@
-use std::{fs, io::{BufRead, BufReader}, net::{TcpListener, TcpStream}};
+use std::{fs, io::{BufRead, BufReader}, net::{TcpListener, TcpStream}, thread};
 use std::io::Write;
+use std::time::Duration;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:6969").unwrap();
@@ -7,7 +8,10 @@ fn main() {
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        handle_connection(stream)
+        thread::spawn(||{
+            handle_connection(stream)
+        });
+
     }
 }
 fn handle_connection(mut stream: TcpStream) {
@@ -22,9 +26,13 @@ fn handle_connection(mut stream: TcpStream) {
     let request_line = buf_reader.lines().next().unwrap().unwrap();
 
 
-    // this handles request from the URL with '/' URI to return hello.html and 404.html for other URIs
+    // this handles request from the URL with '/' and '/sleep' URI to return hello.html and 404.html for other URIs
     let (status_line, filename) = match &request_line[..] {
         "GET / HTTP/1.1" => ("HTTP/1.1 200 OK", "hello.html"),
+        "GET /sleep HTTP/1.1" => {
+            thread::sleep(Duration::from_secs(5));
+            ("HTTP/1.1 200 OK", "hello.html")
+        }
         _ => ("HTTP/1.1 404 PageNotFound", "404.html")
     };
 
