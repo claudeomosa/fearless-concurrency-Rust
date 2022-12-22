@@ -18,15 +18,14 @@ fn handle_connection(mut stream: TcpStream) {
         headers CRLF
         message-body
     */
-    //this lie gets us the first line of the http response (the request line) rather than the whole
+    //this gets us the first line of the http response (the request line) rather than the whole
     let request_line = buf_reader.lines().next().unwrap().unwrap();
 
-    let (status_line, filename) = if request_line == "GET / HTTP/1.1" {
-        // this handles request from the URL with '/' URI
-        ("HTTP/1.1 200 OK", "hello.html")
-    }else {
-        // this handles request from any other URI
-        ("HTTP/1.1 404 PageNotFound", "404.html")
+
+    // this handles request from the URL with '/' URI to return hello.html and 404.html for other URIs
+    let (status_line, filename) = match &request_line[..] {
+        "GET / HTTP/1.1" => ("HTTP/1.1 200 OK", "hello.html"),
+        _ => ("HTTP/1.1 404 PageNotFound", "404.html")
     };
 
     let contents = fs::read_to_string(filename).unwrap();
