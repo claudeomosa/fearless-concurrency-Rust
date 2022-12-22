@@ -1,14 +1,16 @@
 use std::{fs, io::{BufRead, BufReader}, net::{TcpListener, TcpStream}, thread};
 use std::io::Write;
 use std::time::Duration;
+use hello::ThreadPool;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:6969").unwrap();
+    let pool = ThreadPool::new(4); //create a thread pool with finite number of threads, 4
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        thread::spawn(||{
+        pool.execute(||{
             handle_connection(stream)
         });
 
@@ -51,8 +53,5 @@ fn handle_connection(mut stream: TcpStream) {
         .take_while(|line|!line.is_empty())
         .collect();
     */
-
-
-
 
 }
